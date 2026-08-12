@@ -41,11 +41,29 @@ The frontend calls Google directly for city lookup and routing, so you need
 your own key.
 
 1. In the [Google Cloud Console](https://console.cloud.google.com/google/maps-apis),
-   create a project and enable **all three** of these APIs:
-   - Maps JavaScript API — renders the map
-   - Places API — city autocomplete in the From/To inputs
-   - Routes API — computes the driving routes
-2. Create an API key and enable billing on the project.
+   create a project and enable **all three** of these services:
+
+   | Service | Identifier | Used for |
+   |---|---|---|
+   | Maps JavaScript API | `maps-backend.googleapis.com` | rendering the map |
+   | **Places API (New)** | `places.googleapis.com` | city autocomplete in the From/To inputs |
+   | Routes API | `routes.googleapis.com` | computing the driving routes |
+
+   Two things that are easy to get wrong here:
+
+   - **"Places API" and "Places API (New)" are different services.** The legacy
+     one is `places-backend.googleapis.com` and this app does not use it.
+     Enabling it will leave you with autocomplete that silently returns
+     nothing. Check the identifier, not the display name.
+   - **Enabling is a project setting, not a key setting.** A key's *API
+     restrictions* panel only narrows which already-enabled APIs that key may
+     call — ticking boxes there enables nothing. Use the **API Library** and
+     enable each of the three separately. Having Maps JavaScript working tells
+     you nothing about the other two.
+
+2. Create an API key and enable billing on the project. Routes and Places both
+   require billing; Maps JavaScript is more forgiving, so a map that loads
+   while nothing else works is a likely sign that billing is missing.
 3. Restrict the key by **HTTP referrer** (`http://localhost:5173/*` for local
    use). The key is used from the browser, so anyone using the app can read it —
    referrer restriction, not secrecy, is what protects it.
@@ -61,6 +79,25 @@ your own key.
 stored anywhere in this repository. If the key is missing or rejected, the app
 says so plainly instead of failing silently — and the carrier list still works,
 since the backend never touches Google.
+
+### If something isn't working
+
+The app fails loudly, and each symptom points at one service:
+
+| Symptom | Cause |
+|---|---|
+| Search button never enables, even with two cities typed | **Places API (New)** not enabled — city selection is failing, so no city is ever chosen |
+| City fields say "City lookup is unavailable" | Places API (New) not enabled, or the Maps SDK failed to load |
+| Map says "Google Maps API key is missing" | `GOOGLE_MAPS_API_KEY` not set, or the dev server wasn't restarted after setting it |
+| Map says "Google Maps rejected the API key" | Key invalid, billing not enabled, or referrer restriction excludes `http://localhost:5173` |
+| Map says "Could not load routes" | **Routes API** not enabled |
+| Carriers load but the map never does | Maps JavaScript API or Routes API not enabled — the backend has no Google dependency, so it is unaffected |
+
+The browser console (⌥⌘J) carries the underlying error in every case; failures
+are logged rather than swallowed.
+
+Note that the dev server reads the key at **startup** and bakes it into the
+bundle — changing `.env` while it is running has no effect until you restart it.
 
 ## Running it
 
