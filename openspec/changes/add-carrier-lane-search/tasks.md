@@ -36,7 +36,7 @@
 - [x] 5.1 Build the From and To city inputs using the current Places autocomplete element, restricted to cities
 - [x] 5.2 Retain the selected place identifier and formatted name for each input; treat typed-but-unselected text as no selection
 - [x] 5.3 Implement Search control gating: unavailable unless both cities are selected and they differ, with a message when the same city is chosen twice
-- [ ] 5.4 Verify manually that typing "Washington" offers Washington, DC and does not offer the state — BLOCKED: needs a live `GOOGLE_MAPS_API_KEY`
+- [x] 5.4 Verify manually that typing "Washington" offers Washington, DC and does not offer the state
 
 ## 6. Frontend: carrier results
 
@@ -71,13 +71,13 @@
 - [x] 9.1 Create `prompts/` and add the prompts used to produce this change
 - [x] 9.2 Track `.claude/`, `.agents/`, and `openspec/` in git — they are currently untracked and constitute the "rules used" deliverable
 - [x] 9.3 Re-verify no key material is present in tracked files or in git history before pushing
-- [ ] 9.4 Commit and push to `github.com/dfunaki/test_portal`
-- [ ] 9.5 Resolve repository visibility with the user — make it public, or invite the reviewer — then confirm the shareable URL
+- [x] 9.4 Commit and push to `github.com/dfunaki/test_portal`
+- [x] 9.5 Repository visibility resolved: staying **private** for now. Sharing with a reviewer will require flipping to public or inviting them as a collaborator; key hygiene is already verified, so that flip is safe whenever it happens
 
 ## 10. End-to-end verification
 
-- [ ] 10.1 From a clean shell, follow the README verbatim and confirm both services start
-- [ ] 10.2 Exercise NYC→DC and confirm Knight-Swift, J.B. Hunt, and YRC appear with a map of up to three routes
-- [ ] 10.3 Exercise SF→LA and confirm XPO, Schneider, and Landstar appear
-- [ ] 10.4 Exercise a third unrelated lane and confirm UPS and FedEx appear
+- [x] 10.1 From a clean shell, follow the README verbatim and confirm both services start
+- [x] 10.2 Exercise NYC→DC and confirm Knight-Swift, J.B. Hunt, and YRC appear with a map of up to three routes
+- [x] 10.3 Exercise SF→LA and confirm XPO, Schneider, and Landstar appear
+- [x] 10.4 Exercise a third unrelated lane and confirm UPS and FedEx appear
 - [ ] 10.5 Confirm a lane with no drivable route reports the no-route message while still listing carriers
