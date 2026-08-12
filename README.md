@@ -93,6 +93,15 @@ The app fails loudly, and each symptom points at one service:
 | Map says "Could not load routes" | **Routes API** not enabled |
 | Carriers load but the map never does | Maps JavaScript API or Routes API not enabled — the backend has no Google dependency, so it is unaffected |
 
+On a **deployed** site, these as well:
+
+| Symptom | Cause |
+|---|---|
+| Network tab requests `/src/main.jsx`, assets 404 | Publish directory is `frontend` instead of `frontend/dist` — the dev `index.html` is being served |
+| Map works, carriers always fail | `API_BASE_URL` unset at build time, so the page is calling `127.0.0.1` on the *visitor's* machine |
+| Carriers still fail after changing `API_BASE_URL` | The value is baked in at build time — redeploying without rebuilding keeps the old one |
+| "Google Maps rejected the API key" only in production | Deployed domain missing from the key's HTTP referrer restriction |
+
 The browser console (⌥⌘J) carries the underlying error in every case; failures
 are logged rather than swallowed.
 
@@ -144,7 +153,80 @@ source .venv/bin/activate
 pytest
 ```
 
-65 tests cover lane resolution and the full carrier rule matrix.
+72 tests cover lane resolution, the full carrier rule matrix, the endpoint
+contract, cross-origin access, and port resolution.
+
+## Deployment
+
+Two services: a static site for the frontend and a web service for the backend.
+Settings live in your host's dashboard — there is no blueprint file in this
+repository.
+
+### Static site (frontend)
+
+| Setting | Value |
+|---|---|
+| Root directory | `frontend` |
+| Build command | `npm ci && npm run build` |
+| Publish directory | `dist` |
+
+**Publish `dist`, not `frontend`.** Publishing the project directory serves the
+*development* `index.html`, which asks the browser for `/src/main.jsx` — raw JSX
+no server can compile — while the real bundle 404s. If you see a request for
+`main.jsx` in the network tab of a deployed site, this is the cause.
+
+Build-time environment variables:
+
+| Variable | Value |
+|---|---|
+| `GOOGLE_MAPS_API_KEY` | your key |
+| `API_BASE_URL` | the deployed backend's URL, e.g. `https://your-api.onrender.com` |
+
+**Set `API_BASE_URL`.** Left unset, the build falls back to
+`http://127.0.0.1:8000` — which, in a deployed page, means *the machine of
+whoever is viewing it*. Carrier lookups then fail in a way that looks exactly
+like a backend outage while the backend is running perfectly.
+
+### Web service (backend)
+
+| Setting | Value |
+|---|---|
+| Root directory | `backend` |
+| Build command | `pip install -r requirements.txt` |
+| Start command | `python -m app.main` |
+
+The start command reads `PORT` from the environment and binds `0.0.0.0`, which
+is what makes the service reachable. Hosts set `PORT` themselves; nothing needs
+configuring. Locally it falls back to 8000, so the two-terminal instructions
+above keep working with no environment set.
+
+If your host expects a uvicorn command instead, the equivalent is
+`uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+
+No environment variables are required. The backend accepts requests from any
+origin, so the frontend needs no registering.
+
+### Google Maps key
+
+Add your deployed frontend domain to the key's HTTP referrer restriction —
+`https://your-site.onrender.com/*` — alongside the localhost entry. Missing this
+presents as "Google Maps rejected the API key" and is easily mistaken for a
+build problem.
+
+### Build-time and run-time are not the same thing
+
+Both services are configured by environment variable, and they behave
+differently:
+
+```
+frontend   read at BUILD time  → baked into the bundle
+                               → changing it requires a REBUILD
+
+backend    read at RUN time    → changing it requires a restart
+```
+
+Changing `API_BASE_URL` and redeploying without rebuilding leaves the old value
+in place. This is the likeliest source of a confusing hour.
 
 ## Decisions
 

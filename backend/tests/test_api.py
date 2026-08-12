@@ -119,18 +119,46 @@ def test_place_id_is_optional() -> None:
     assert response.json()["origin"]["place_id"] is None
 
 
-def test_cors_allows_the_frontend_development_origin() -> None:
-    response = client.options(
+def preflight(origin: str) -> "object":
+    return client.options(
         ENDPOINT,
         headers={
-            "Origin": "http://localhost:5173",
+            "Origin": origin,
             "Access-Control-Request-Method": "POST",
             "Access-Control-Request-Headers": "Content-Type",
         },
     )
 
+
+def test_cors_allows_the_frontend_development_origin() -> None:
+    response = preflight("http://localhost:5173")
+
     assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+    # The wildcard permits the development origin along with every other.
+    assert response.headers["access-control-allow-origin"] == "*"
+
+
+@pytest.mark.parametrize(
+    "origin",
+    [
+        "https://test-portal-1-pozq.onrender.com",
+        "https://carrier-lane-search.example.com",
+        "http://127.0.0.1:5173",
+    ],
+)
+def test_cors_allows_a_deployed_origin(origin: str) -> None:
+    """The frontend may be hosted anywhere; no origin needs registering first."""
+    response = preflight(origin)
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "*"
+
+
+def test_cors_does_not_permit_credentials() -> None:
+    """A wildcard origin with credentials is invalid and unsafe; never send it."""
+    response = preflight("https://test-portal-1-pozq.onrender.com")
+
+    assert "access-control-allow-credentials" not in response.headers
 
 
 def test_health_endpoint() -> None:

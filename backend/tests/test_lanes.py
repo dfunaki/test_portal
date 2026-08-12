@@ -16,6 +16,7 @@ from app.carriers import (
     normalize,
     resolve_endpoint,
 )
+from app.main import DEFAULT_PORT, resolve_port
 from app.models import CityInput
 
 # Representative city for each canonical endpoint, plus two unremarkable ones.
@@ -218,3 +219,21 @@ def test_lookup_reports_resolved_endpoints() -> None:
     assert destination.matched == DC
     assert origin.name == NYC_CITY.name
     assert destination.name == DC_CITY.name
+
+
+# --- Port resolution ----------------------------------------------------------
+
+
+def test_resolve_port_uses_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PORT", "10000")
+    assert resolve_port() == 10000
+
+
+def test_resolve_port_falls_back_when_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("PORT", raising=False)
+    assert resolve_port() == DEFAULT_PORT
+
+
+def test_resolve_port_falls_back_when_unusable(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PORT", "not-a-port")
+    assert resolve_port() == DEFAULT_PORT
