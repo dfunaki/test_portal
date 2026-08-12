@@ -142,6 +142,19 @@ body {
   color: var(--muted);
 }
 
+/* An undrivable lane is a fact, not a failure — deliberately styled as
+   information rather than borrowing the error treatment. */
+.unserved {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--muted);
+  border-radius: 6px;
+  background: #fbfcfd;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 /* --- map --- */
 
 .map-canvas {

@@ -26,6 +26,19 @@ export default function CarrierPanel({ state, onRetry }) {
     )
   }
 
+  // Not an error and nothing to retry: there is no road between these cities,
+  // so no trucking carrier serves the lane. Rendered as plain information.
+  if (state.status === 'unserved') {
+    return (
+      <section className="panel carriers">
+        <h2>Carriers</h2>
+        <p className="unserved">
+          No carriers serve this lane — there is no drivable route between these cities.
+        </p>
+      </section>
+    )
+  }
+
   if (state.status === 'error') {
     return (
       <section className="panel carriers">

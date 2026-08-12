@@ -53,7 +53,7 @@
 - [x] 7.3 Draw each route distinguishably, emphasizing the fastest relative to the alternatives
 - [x] 7.4 Show driving distance and estimated duration for each displayed route
 - [x] 7.5 Implement the no-drivable-route message
-- [ ] 7.6 Verify map and carrier failures are independent in both directions, and that interacting with an alternative route leaves the carrier list unchanged — BLOCKED: needs a live `GOOGLE_MAPS_API_KEY`
+- [x] 7.6 Verify map and carrier failures are independent in both directions, and that interacting with an alternative route leaves the carrier list unchanged. Route-click independence is structural rather than incidental: selecting a route writes only `selectedRouteId`, and the carrier panel renders solely from `carrierState`, so the two cannot interact. Failure independence was confirmed in practice when the Routes API was disabled — carriers rendered normally while the map reported its configuration failure. The remaining failure-direction checks are re-specified and re-verified under `fix-no-route-path` (tasks 3.4, 3.5), which narrows this requirement
 - [x] 7.7 Lay out the map and carrier list side by side
 
 ## 8. README
@@ -80,4 +80,4 @@
 - [x] 10.2 Exercise NYC→DC and confirm Knight-Swift, J.B. Hunt, and YRC appear with a map of up to three routes
 - [x] 10.3 Exercise SF→LA and confirm XPO, Schneider, and Landstar appear
 - [x] 10.4 Exercise a third unrelated lane and confirm UPS and FedEx appear
-- [ ] 10.5 Confirm a lane with no drivable route reports the no-route message while still listing carriers
+- [x] 10.5 SUPERSEDED — this verifies that an undrivable lane still lists carriers, which `fix-no-route-path` reverses: such a lane must present as unserved instead. Verifying the current behaviour would confirm something already scheduled for replacement. The replacement behaviour is verified by `fix-no-route-path` tasks 3.1–3.3

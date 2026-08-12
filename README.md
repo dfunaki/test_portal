@@ -155,9 +155,23 @@ depend only on the city pair — not on distance, duration, or rate — so a
 server-side route call would produce data nothing consumes. This keeps one API
 key in one place and means the carrier list works even when the map does not.
 
-**The map and the carrier list fail independently.** A routing failure leaves
-the carriers intact, a backend failure leaves the map intact, and selecting a
-different route on the map does not change the carriers.
+**The map and the carrier list fail independently — but an undrivable lane is
+not a failure.** A routing *failure* (API error, quota, network, rejected key)
+leaves the carriers intact, because a failed request is not evidence that no
+route exists. A backend failure leaves the map intact. Selecting a different
+route on the map does not change the carriers.
+
+**A lane with no drivable route shows no carriers.** When Google reports
+definitively that no road route exists — New York to London, say — the carrier
+panel says the lane is unserved rather than listing UPS and FedEx, because no
+truck runs a route that doesn't exist. The backend still returns those carriers
+for such a lane; it answers from the city pair alone and knows nothing about
+roads. The distinction is made in presentation only, which is what keeps the
+backend free of any Maps dependency.
+
+Because the backend answers in milliseconds and Google takes a network round
+trip, carriers are withheld until routing resolves. Otherwise every undrivable
+lane would list carriers and then blank them a moment later.
 
 **`GOOGLE_MAPS_API_KEY` keeps its name in the browser.** Vite normally only
 exposes `VITE_`-prefixed variables to client code, which would mean two names

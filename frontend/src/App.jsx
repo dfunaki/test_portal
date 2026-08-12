@@ -13,6 +13,31 @@ function sameCity(a, b) {
   return a.name.trim().toLowerCase() === b.name.trim().toLowerCase()
 }
 
+/**
+ * What the carrier panel should show, given both the carrier and routing
+ * outcomes.
+ *
+ * Derived at render time rather than stored: a persisted "unserved" flag would
+ * have to be cleared on every new search, and a stale one would suppress
+ * carriers on the following lane.
+ */
+function deriveCarrierPanelState(carrierState, routeState) {
+  // Routing succeeded and found no road between these cities, so no carrier
+  // runs this lane — whatever the backend returned. This is the one case where
+  // the routing outcome governs the carrier panel.
+  if (routeState.status === 'empty') return { status: 'unserved' }
+
+  // Until routing resolves we do not yet know whether the lane is drivable.
+  // The backend is local and answers first, so showing its carriers now would
+  // mean blanking them a moment later on an undrivable lane.
+  const carriersResolved = carrierState.status === 'ok' || carrierState.status === 'error'
+  if (routeState.status === 'loading' && carriersResolved) return { status: 'loading' }
+
+  // Everything else — including a routing *failure*, which is not evidence
+  // that the lane is undrivable — leaves the carrier panel alone.
+  return carrierState
+}
+
 export default function App() {
   const [origin, setOrigin] = useState(null)
   const [destination, setDestination] = useState(null)
@@ -117,7 +142,10 @@ export default function App() {
           selectedRouteId={selectedRouteId}
           onSelectRoute={setSelectedRouteId}
         />
-        <CarrierPanel state={carrierState} onRetry={handleRetryCarriers} />
+        <CarrierPanel
+          state={deriveCarrierPanelState(carrierState, routeState)}
+          onRetry={handleRetryCarriers}
+        />
       </main>
     </div>
   )
