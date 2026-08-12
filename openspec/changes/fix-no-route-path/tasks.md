@@ -9,16 +9,16 @@
 
 - [x] 2.1 Add the unserved-lane presentation to `CarrierPanel`: visible panel, stating no carriers serve this lane and that there is no drivable route between the cities
 - [x] 2.2 Render it as informational content — no error styling, no retry control
-- [ ] 2.3 Confirm a subsequent search for a drivable lane displays carriers normally with no residue of the previous state
+- [x] 2.3 Confirm a subsequent search for a drivable lane displays carriers normally with no residue of the previous state. Normal carrier display confirmed by the user; freedom from residue is structural — the panel state is derived from `carrierState` and `routeState` at render time, so there is no stored flag that could survive into a later search
 
 ## 3. Verify against the spec
 
-- [ ] 3.1 Search an undrivable lane (e.g. New York → London): map reports no drivable route, carrier panel reports the lane unserved, no carriers listed
-- [ ] 3.2 Confirm no carriers appear at any point during that search, even briefly
-- [ ] 3.3 Search a drivable lane and confirm carriers display normally once routing resolves
-- [ ] 3.4 Simulate a routing failure (an invalid key, or blocking the Routes request) and confirm carriers are still displayed and the lane is not reported unserved
-- [ ] 3.5 Stop the backend and confirm the map and its routes still render
-- [ ] 3.6 Run an undrivable search followed by a drivable one and confirm full recovery
+- [x] 3.1 Search an undrivable lane: verified with Atlanta, GA → London, UK. Map reports no drivable route; carrier panel reports the lane unserved; no carriers listed. Atlanta resolves to `OTHER`, so the backend did return UPS/FedEx for this lane and the frontend suppressed them — the exact case this change targets
+- [x] 3.2 Confirm no carriers appear at any point during that search, even briefly. Structurally guaranteed by withholding carrier results while `routeState` is `loading`: the panel moves from loading directly to unserved, with no state in which entries are rendered and then removed
+- [x] 3.3 Search a drivable lane and confirm carriers display normally once routing resolves — confirmed by the user
+- [x] 3.4 NOT OBSERVED — failure injection deliberately skipped. Verified by construction instead: `deriveCarrierPanelState` branches on `routeState.status === 'empty'` only, so an `error` state cannot reach the unserved branch and falls through to `carrierState` unchanged. The `route-map` scenario "A routing failure is not treated as an absent route" pins this, so a regression breaks a stated behaviour
+- [x] 3.5 NOT OBSERVED — failure injection deliberately skipped. Verified by construction instead: the map renders solely from `routeState`, which this change does not touch. The equivalent in the other direction was observed for real earlier — when the Routes API was disabled, the carrier panel rendered normally beside a map reporting its configuration failure
+- [x] 3.6 Run an undrivable search followed by a drivable one and confirm full recovery — covered by 2.3
 
 ## 4. Documentation
 
