@@ -4,9 +4,13 @@ import { loadGoogleMaps } from '../googleMaps.js'
 /**
  * A city input backed by Google Places autocomplete.
  *
- * Suggestions are restricted to cities, so a user who types "Washington"
- * cannot accidentally choose the state when they mean the District of
- * Columbia — the wrong answer is never offered in the first place.
+ * Suggestions are restricted twice over, so the wrong answer is never offered
+ * in the first place rather than being explained away afterwards:
+ *
+ * - to cities, so a user who types "Washington" cannot accidentally choose the
+ *   state when they mean the District of Columbia;
+ * - to the United States, because this searches drivable domestic lanes — a
+ *   foreign city could only ever produce a lane reported as unserved.
  *
  * A city counts as chosen only when it is picked from the suggestion list.
  * Typing over a previous selection clears it.
@@ -35,6 +39,11 @@ export default function CityAutocomplete({ id, label, placeholder, onChange }) {
 
         const element = new PlaceAutocompleteElement({
           includedPrimaryTypes: ['(cities)'],
+          // Applied by the Places service itself, so non-US places are never
+          // returned rather than being returned and hidden. 'us' is a CLDR
+          // region code covering the 50 states and DC; territories such as
+          // Puerto Rico carry their own codes and are deliberately excluded.
+          includedRegionCodes: ['us'],
         })
         element.id = id
         if (placeholder) element.setAttribute('placeholder', placeholder)
